@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sánmọ̀: weather you can wear</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..700&family=Hanken+Grotesk:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    @property --sky1 {
+      syntax: '<color>';
+      inherits: true;
+      initial-value: #0b4fb3;
+    }
+
+    @property --sky2 {
+      syntax: '<color>';
+      inherits: true;
+      initial-value: #2a8be0;
+    }
+
+    @property --sky3 {
+      syntax: '<color>';
+      inherits: true;
+      initial-value: #ffb36b;
+    }
+
+    :root {
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      color-scheme: dark;
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: inherit;
+    }
+
+    [data-theme="clear-day"] {
+      --sky1: #0b4fb3;
+      --sky2: #2a8be0;
+      --sky3: #ffb36b;
+      --orb1: #ffd27a;
+      --orb2: #7ec8ff;
+    }
+
+    [data-theme="clear-night"] {
+      --sky1: #070b24;
+      --sky2: #1a1f5a;
+      --sky3: #4a2f86;
+      --orb1: #6a5cff;
+      --orb2: #2b8cff;
+    }
+
+    [data-theme="clouds"] {
+      --sky1: #2f3d55;
+      --sky2: #55698a;
+      --sky3: #8497b5;
+      --orb1: #b8c7dd;
+      --orb2: #7d8fb0;
+    }
+
+    [data-theme="rain"] {
+      --sky1: #15263a;
+      --sky2: #264a63;
+      --sky3: #3d6f80;
+      --orb1: #4fb0c6;
+      --orb2: #2b6cb0;
+    }
+
+    [data-theme="storm"] {
+      --sky1: #1a1233;
+      --sky2: #3a2260;
+      --sky3: #733a78;
+      --orb1: #8e5bff;
+      --orb2: #ff7a59;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: #f6f8ff;
+      font-family: 'Hanken Grotesk', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      background: linear-gradient(172deg, var(--sky1) 0%, var(--sky2) 55%, var(--sky3) 100%) fixed #15263a;
+      transition: --sky1 1.2s ease, --sky2 1.2s ease, --sky3 1.2s ease;
+      overflow-x: hidden;
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: .55;
+      pointer-events: none;
+      z-index: 0;
+      transition: background 1.2s ease;
+    }
+
+    .orb.a {
+      width: 46vmax;
+      height: 46vmax;
+      top: -14vmax;
+      right: -10vmax;
+      background: var(--orb1);
+      animation: drift 26s ease-in-out infinite alternate;
+    }
+
+    .orb.b {
+      width: 38vmax;
+      height: 38vmax;
+      bottom: -16vmax;
+      left: -12vmax;
+      background: var(--orb2);
+      animation: drift 32s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes drift {
+      to {
+        transform: translate(5vmax, 4vmax) scale(1.08);
+      }
+    }
+
+    .stars,
+    .rain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+
+    .stars {
+      background-image:
+        radial-gradient(1.5px 1.5px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 38% 8%, #fff, transparent),
+        radial-gradient(1.5px 1.5px at 64% 22%, #fff, transparent), radial-gradient(1px 1px at 82% 12%, #fff, transparent),
+        radial-gradient(1px 1px at 24% 40%, #fff, transparent), radial-gradient(1.5px 1.5px at 90% 36%, #fff, transparent);
+    }
+
+    .rain {
+      background-image: repeating-linear-gradient(104deg, transparent 0 22px, rgba(255, 255, 255, .28) 22px 23px);
+      background-size: 100% 240px;
+      animation: fall 1.1s linear infinite;
+    }
+
+    @keyframes fall {
+      to {
+        background-position: -40px 240px;
+      }
+    }
+
+    [data-theme="clear-night"] .stars {
+      opacity: .9;
+    }
+
+    [data-theme="rain"] .rain,
+    [data-theme="storm"] .rain {
+      opacity: .35;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px 22px 48px;
+      display: grid;
+      gap: 22px;
+      grid-template-columns: 1.35fr 1fr;
+      grid-template-areas: "top top" "cities cities" "hero cmp" "hero hist" "fc fc" "foot foot";
+    }
+
+    .top {
+      grid-area: top;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 600;
+      font-size: 1.5rem;
+      letter-spacing: -.02em;
+    }
+
+    .unit {
+      display: inline-flex;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(8, 14, 32, .3);
+      border: 1px solid rgba(255, 255, 255, .18);
+      backdrop-filter: blur(18px);
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      border: 0;
+      background: none;
+    }
+
+    .unit button {
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      transition: background .25s, color .25s;
+    }
+
+    .unit button[aria-pressed="true"] {
+      background: #f6f8ff;
+      color: #14203a;
+    }
+
+    button:focus-visible,
+    select:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 3px;
+    }
+
+    .cities {
+      grid-area: cities;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .cities button {
+      padding: 9px 18px;
+      border-radius: 999px;
+      background: rgba(8, 14, 32, .22);
+      border: 1px solid rgba(255, 255, 255, .2);
+      backdrop-filter: blur(14px);
+      transition: background .25s, transform .25s;
+    }
+
+    .cities button:hover {
+      background: rgba(255, 255, 255, .18);
+    }
+
+    .cities button[aria-pressed="true"] {
+      background: #f6f8ff;
+      color: #14203a;
+      font-weight: 600;
+    }
+
+    .glass {
+      background: rgba(8, 14, 32, .30);
+      border: 1px solid rgba(255, 255, 255, .18);
+      backdrop-filter: blur(24px) saturate(1.5);
+      -webkit-backdrop-filter: blur(24px) saturate(1.5);
+      box-shadow: 0 30px 60px -30px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .18);
+    }
+
+    .hero {
+      grid-area: hero;
+      border-radius: 40px;
+      padding: 38px 40px 34px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .date {
+      margin: 0;
+      opacity: .8;
+    }
+
+    h1 {
+      margin: 6px 0 0;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 300;
+      font-size: clamp(2.2rem, 5vw, 3.4rem);
+      letter-spacing: -.03em;
+      line-height: 1.05;
+    }
+
+    .temp {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 200;
+      font-size: clamp(7rem, 18vw, 12rem);
+      line-height: .95;
+      letter-spacing: -.06em;
+      margin: 14px 0 0 -6px;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .temp sup {
+      font-size: .3em;
+      font-weight: 300;
+      letter-spacing: 0;
+      margin: .22em 0 0 .08em;
+      opacity: .85;
+    }
+
+    .desc {
+      margin: 4px 0 0;
+      font-size: 1.35rem;
+      text-transform: capitalize;
+    }
+
+    .facts {
+      display: flex;
+      gap: 34px;
+      margin: 26px 0 0;
+      padding-top: 22px;
+      border-top: 1px solid rgba(255, 255, 255, .22);
+    }
+
+    .facts div {
+      display: grid;
+      gap: 2px;
+    }
+
+    .facts dt {
+      opacity: .7;
+      font-size: .9rem;
+    }
+
+    .facts dd {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 500;
+    }
+
+    .advice {
+      margin: 26px 0 0;
+      padding: 18px 22px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, .14);
+      font-size: 1.08rem;
+      max-width: 52ch;
+    }
+
+    .compare,
+    .history {
+      border-radius: 28px;
+      padding: 26px 28px;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 500;
+      font-size: 1.3rem;
+      letter-spacing: -.01em;
+    }
+
+    .compare {
+      grid-area: cmp;
+    }
+
+    .history {
+      grid-area: hist;
+    }
+
+    .pick {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    select {
+      font: inherit;
+      color: #f6f8ff;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(8, 14, 32, .4);
+      border: 1px solid rgba(255, 255, 255, .22);
+    }
+
+    select option {
+      color: #14203a;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 6px 14px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .row>span {
+      opacity: .75;
+      font-size: .92rem;
+    }
+
+    .bars {
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: .95rem;
+    }
+
+    .bar i {
+      display: block;
+      height: 8px;
+      border-radius: 8px;
+      background: #f6f8ff;
+      transition: width .6s cubic-bezier(.2, .8, .2, 1);
+      min-width: 4px;
+    }
+
+    .bar.two i {
+      background: var(--orb1);
+    }
+
+    .verdict {
+      margin: 4px 0 0;
+      font-size: 1.02rem;
+    }
+
+    ol {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: baseline;
+    }
+
+    li b {
+      font-weight: 600;
+    }
+
+    li small {
+      opacity: .7;
+    }
+
+    .clear {
+      margin-top: 16px;
+      opacity: .7;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .foot {
+      grid-area: foot;
+      opacity: .65;
+      font-size: .9rem;
+      max-width: 70ch;
+    }
+
+    @media (max-width: 860px) {
+      .shell {
+        grid-template-columns: 1fr;
+        grid-template-areas: "top" "cities" "hero" "fc" "cmp" "hist" "foot";
+        padding: 20px 16px 40px;
+      }
+
+      .hero {
+        padding: 28px 24px;
+        border-radius: 32px;
+      }
+
+      .facts {
+        gap: 22px;
+        flex-wrap: wrap;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+  <style>
+    .field {
+      font: inherit;
+      color: #f6f8ff;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(8, 14, 32, .4);
+      border: 1px solid rgba(255, 255, 255, .22);
+      min-width: 0;
+    }
+
+    .field::placeholder {
+      color: rgba(246, 248, 255, .55);
+    }
+
+    .field:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 3px;
+    }
+
+    .go,
+    .cities .go {
+      padding: 10px 20px;
+      border-radius: 14px;
+      background: #f6f8ff;
+      color: #14203a;
+      font-weight: 600;
+    }
+
+    .search {
+      display: flex;
+      gap: 8px;
+      flex: 1 1 280px;
+    }
+
+    .search .field {
+      flex: 1;
+    }
+
+    .status {
+      flex-basis: 100%;
+      margin: 0;
+      min-height: 1.5em;
+    }
+
+    .compare .go {
+      margin-bottom: 18px;
+    }
+
+    .forecast {
+      grid-area: fc;
+      border-radius: 32px;
+      padding: 26px 28px;
+    }
+
+    .days {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(128px, 1fr));
+      gap: 8px 0;
+      overflow-x: auto;
+    }
+
+    .day {
+      display: grid;
+      align-content: start;
+      gap: 2px;
+      padding: 0 18px;
+    }
+
+    .day:first-child {
+      padding-left: 0;
+    }
+
+    .day+.day {
+      border-left: 1px solid rgba(255, 255, 255, .2);
+    }
+
+    .day b {
+      font-weight: 600;
+    }
+
+    .day small {
+      opacity: .7;
+    }
+
+    .day .t {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 300;
+      font-size: 2.7rem;
+      letter-spacing: -.04em;
+      line-height: 1.1;
+      margin-top: 8px;
+    }
+
+    .day .d {
+      text-transform: capitalize;
+      opacity: .9;
+    }
+  </style>
+</head>
+
+<body data-theme="clear-day">
+  <div class="orb a"></div>
+  <div class="orb b"></div>
+  <div class="stars"></div>
+  <div class="rain"></div>
+  <main class="shell">
+    <header class="top">
+      <div class="brand">Sánmọ̀ </div>
+      <div class="unit" role="group" aria-label="Temperature unit">
+        <button data-u="c" aria-pressed="true">°C</button><button data-u="f" aria-pressed="false">°F</button>
+      </div>
+    </header>
+    <nav class="cities" id="cities" aria-label="Search">
+      <form class="search" id="searchForm">
+        <input class="field" id="q" placeholder="Search any city" autocomplete="off" aria-label="City">
+        <button class="go">Search</button>
+      </form>
+      <button data-c="Lagos">Lagos</button><button data-c="London">London</button><button
+        data-c="Dubai">Dubai</button><button data-c="Tokyo">Tokyo</button>
+      <p class="status" id="status" role="status"></p>
+    </nav>
+    <section class="hero glass" aria-live="polite">
+      <p class="date" id="date"></p>
+      <h1 id="city"></h1>
+      <div class="temp"><span id="temp"></span><sup>°<span id="deg"></span></sup></div>
+      <p class="desc" id="desc"></p>
+      <dl class="facts">
+        <div>
+          <dt>Feels like</dt>
+          <dd id="feels"></dd>
+        </div>
+        <div>
+          <dt>Humidity</dt>
+          <dd id="hum"></dd>
+        </div>
+        <div>
+          <dt>Right now</dt>
+          <dd id="dn"></dd>
+        </div>
+      </dl>
+      <p class="advice" id="advice"></p>
+    </section>
+    <section class="forecast glass">
+      <h2>The next few days</h2>
+      <div class="days" id="days"></div>
+    </section>
+    <section class="compare glass">
+      <h2>Compare two cities</h2>
+      <form id="cmpForm">
+        <div class="pick"><input class="field" id="ca" placeholder="First city" aria-label="First city"><input
+            class="field" id="cb" placeholder="Second city" aria-label="Second city"></div>
+        <button class="go">Compare</button>
+      </form>
+      <div id="cmp"></div>
+      <p class="verdict" id="verdict">Enter two cities to compare them.</p>
+    </section>
+    <section class="history glass">
+      <h2>Recent searches</h2>
+      <ol id="hist"></ol>
+    </section>
+    <p class="foot">Live readings from OpenWeatherMap, fetched by your Flask server. Forecast shows each day at 12:00
+      UTC. Every search is saved to weather_log.csv.</p>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    let unit = "c", city = "Lagos", lastCompare = null;
+
+    async function api(path) {
+      let res;
+      try { res = await fetch(path); }
+      catch (e) { throw new Error("Can’t reach the server. Is it still running?"); }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Something went wrong.");
+      return data;
+    }
+    const status = msg => { $("status").textContent = msg; };
+
+    async function loadWeather(name, log = true) {
+      status("Loading…");
+      try {
+        const w = await api(`/api/weather?city=${encodeURIComponent(name)}&unit=${unit}&log=${log ? 1 : 0}`);
+        city = w.city;
+        document.body.dataset.theme = w.theme;
+        $("date").textContent = w.date;
+        $("city").textContent = w.city;
+        $("temp").textContent = Math.round(w.temp);
+        $("deg").textContent = unit.toUpperCase();
+        $("desc").textContent = w.description;
+        $("feels").textContent = Math.round(w.feels_like) + "°" + unit.toUpperCase();
+        $("hum").textContent = w.humidity + "%";
+        $("dn").textContent = w.is_day ? "Daytime" : "Night";
+        $("advice").textContent = w.advice;
+        status("");
+        loadForecast(name);
+        if (log) loadHistory();
+      } catch (e) { status(e.message); }
+    }
+
+    async function loadForecast(name) {
+      try {
+        const f = await api(`/api/forecast?city=${encodeURIComponent(name)}&unit=${unit}`);
+        $("days").innerHTML = f.days.map(d =>
+          `<div class="day"><b>${esc(d.weekday)}</b><small>${esc(d.date)}</small><span class="t">${Math.round(d.temp)}°${unit.toUpperCase()}</span><span class="d">${esc(d.description)}</span></div>`
+        ).join("");
+      } catch (e) { $("days").textContent = e.message; }
+    }
+
+    async function loadCompare(a, b) {
+      lastCompare = [a, b];
+      try {
+        const r = await api(`/api/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}&unit=${unit}`);
+        const u = "°" + unit.toUpperCase();
+        const tmax = Math.max(Math.abs(r.a.temp), Math.abs(r.b.temp), 1), hmax = Math.max(r.a.humidity, r.b.humidity, 1);
+        const bar = (v, max, cls, txt) => `<div class="bar ${cls}"><i style="width:${Math.max(4, Math.abs(v) / max * 70)}%"></i>${esc(txt)}</div>`;
+        $("cmp").innerHTML =
+          `<div class="row"><span>Cities</span><div class="bars"><div class="bar">${esc(r.a.city)}</div><div class="bar two">${esc(r.b.city)}</div></div></div>` +
+          `<div class="row"><span>Temperature</span><div class="bars">${bar(r.a.temp, tmax, "", r.a.temp.toFixed(1) + u)}${bar(r.b.temp, tmax, "two", r.b.temp.toFixed(1) + u)}</div></div>` +
+          `<div class="row"><span>Humidity</span><div class="bars">${bar(r.a.humidity, hmax, "", r.a.humidity + "%")}${bar(r.b.humidity, hmax, "two", r.b.humidity + "%")}</div></div>`;
+        $("verdict").textContent = r.verdict;
+      } catch (e) { $("cmp").innerHTML = ""; $("verdict").textContent = e.message; }
+    }
+
+    async function loadHistory() {
+      try {
+        const rows = await api("/api/history");
+        $("hist").innerHTML = rows.map(r =>
+          `<li><span><b>${esc(r.city)}</b> <small>${esc(r.date)} ${esc(r.time)}, ${esc(r.description)}</small></span><span>${Math.round(r.temp)}°${esc(r.unit.toUpperCase())}</span></li>`
+        ).join("") || "<li><small>No searches yet. Search a city to start your history.</small></li>";
+      } catch (e) { $("hist").innerHTML = ""; }
+    }
+
+    $("searchForm").addEventListener("submit", e => { e.preventDefault(); const v = $("q").value.trim(); if (v) loadWeather(v); });
+    $("cities").addEventListener("click", e => { const b = e.target.closest("button[data-c]"); if (b) loadWeather(b.dataset.c); });
+    $("cmpForm").addEventListener("submit", e => { e.preventDefault(); loadCompare($("ca").value, $("cb").value); });
+    document.querySelector(".unit").addEventListener("click", e => {
+      const b = e.target.closest("button"); if (!b) return;
+      unit = b.dataset.u;
+      document.querySelectorAll(".unit button").forEach(x => x.setAttribute("aria-pressed", x.dataset.u === unit));
+      loadWeather(city, false);
+      if (lastCompare) loadCompare(...lastCompare);
+    });
+
+    loadWeather(city, false);
+    loadHistory();
+  </script>
+</body>
+
+</html>
