@@ -64,3 +64,4 @@ Without them the site still works, but it falls back to an animated gradient tha
 
 ## What I learned
 
+I started this as a total beginner and first learned how to pull live data using an API, read the JSON it sends back, and handle whatever goes wrong, like a typo in a city name or no internet. The biggest lesson overall was learning that bugs usually come from small things like wrong indentation or using the wrong variable, and that constantly printing values to see what’s happening is the quickest way to find them and understand what your code is doing. After daily tinkering and frustrations, I've turned my simple terminal script into a full website with Flask, and I actually understand how the pieces talk to each other.
