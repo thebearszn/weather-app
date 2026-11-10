@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Sánmọ̀: weather you can wear</title>
+  <title>Sánmọ̀: what the sky says</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..700&family=Hanken+Grotesk:wght@400;500;600&display=swap"
@@ -563,6 +563,10 @@
       padding: 0 18px;
     }
 
+    .day img {
+      margin: 2px 0 -6px -8px;
+    }
+
     .day:first-child {
       padding-left: 0;
     }
@@ -592,10 +596,70 @@
       text-transform: capitalize;
       opacity: .9;
     }
+
+    .bgvideo {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s ease, filter 1s ease;
+    }
+
+    .bgvideo.ready {
+      opacity: 1;
+    }
+
+    body[data-night="true"] .bgvideo {
+      filter: brightness(.45) saturate(.8);
+    }
+
+    body.has-video::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(6, 12, 28, .30), rgba(6, 12, 28, .55));
+    }
+
+    .has-video .orb,
+    .has-video .stars,
+    .has-video .rain {
+      display: none;
+    }
+
+    [data-theme="partly-cloudy"] {
+      --sky1: #12529f;
+      --sky2: #4a8fd0;
+      --sky3: #bcd3ea;
+      --orb1: #ffe3a6;
+      --orb2: #9cc7ee;
+    }
+
+    [data-theme="snow"] {
+      --sky1: #3b4a63;
+      --sky2: #7d93b3;
+      --sky3: #c9d6e8;
+      --orb1: #e6f0ff;
+      --orb2: #9db4d6;
+    }
+
+    [data-theme="fog"] {
+      --sky1: #3a4048;
+      --sky2: #6a737f;
+      --sky3: #a3acb6;
+      --orb1: #cfd6de;
+      --orb2: #8d96a2;
+    }
   </style>
 </head>
 
 <body data-theme="clear-day">
+  <video id="bg" class="bgvideo" muted loop playsinline autoplay aria-hidden="true"></video>
   <div class="orb a"></div>
   <div class="orb b"></div>
   <div class="stars"></div>
@@ -662,6 +726,21 @@
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     let unit = "c", city = "Lagos", lastCompare = null;
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const bg = $("bg");
+    bg.muted = true;
+    bg.addEventListener("canplay", () => { bg.classList.add("ready"); document.body.classList.add("has-video"); });
+    bg.addEventListener("error", () => { bg.classList.remove("ready"); document.body.classList.remove("has-video"); });
+
+    function setBackground(theme, isDay) {
+      document.body.dataset.theme = theme;
+      document.body.dataset.night = isDay ? "false" : "true";
+      if (reduceMotion || bg.dataset.theme === theme) return;
+      bg.dataset.theme = theme;
+      bg.classList.remove("ready");
+      bg.src = `/static/videos/${theme}.mp4`;
+      bg.play().catch(() => { });
+    }
 
     async function api(path) {
       let res;
@@ -678,7 +757,7 @@
       try {
         const w = await api(`/api/weather?city=${encodeURIComponent(name)}&unit=${unit}&log=${log ? 1 : 0}`);
         city = w.city;
-        document.body.dataset.theme = w.theme;
+        setBackground(w.theme, w.is_day);
         $("date").textContent = w.date;
         $("city").textContent = w.city;
         $("temp").textContent = Math.round(w.temp);
@@ -698,7 +777,7 @@
       try {
         const f = await api(`/api/forecast?city=${encodeURIComponent(name)}&unit=${unit}`);
         $("days").innerHTML = f.days.map(d =>
-          `<div class="day"><b>${esc(d.weekday)}</b><small>${esc(d.date)}</small><span class="t">${Math.round(d.temp)}°${unit.toUpperCase()}</span><span class="d">${esc(d.description)}</span></div>`
+          `<div class="day"><b>${esc(d.weekday)}</b><small>${esc(d.date)}</small><img src="https://openweathermap.org/img/wn/${esc(d.icon)}@2x.png" alt="" width="64" height="64"><span class="t">${Math.round(d.temp)}°${unit.toUpperCase()}</span><span class="d">${esc(d.description)}</span></div>`
         ).join("");
       } catch (e) { $("days").textContent = e.message; }
     }

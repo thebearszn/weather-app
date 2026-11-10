@@ -62,13 +62,21 @@ def get_advice(feels_like, description, unit, is_daytime=True):
     return " ".join(tips)
 
 
-def theme_for(condition, is_day):
+def theme_for(condition, description, is_day):
     if condition == "Clear":
         return "clear-day" if is_day else "clear-night"
     if condition == "Thunderstorm":
         return "storm"
     if condition in ("Rain", "Drizzle"):
         return "rain"
+    if condition == "Snow":
+        return "snow"
+    if condition in ("Mist", "Fog", "Haze", "Smoke", "Dust", "Sand", "Ash"):
+        return "fog"
+    if condition == "Clouds":
+        if "few" in description or "scattered" in description:
+            return "partly-cloudy"
+        return "clouds"
     return "clouds"
 
 
@@ -137,7 +145,7 @@ def fetch_current(city, unit):
         "description": description,
         "condition": condition,
         "is_day": is_day,
-        "theme": theme_for(condition, is_day),
+        "theme": theme_for(condition, description, is_day),
         "advice": get_advice(feels_like, description, unit, is_day),
         "date": f"{now.strftime('%A')}, {now.day}{get_suffix(now.day)} of {now.strftime('%B %Y')}",
         "time": now.strftime("%H:%M"),
@@ -160,6 +168,7 @@ def fetch_forecast(city, unit):
             "date": f"{day_date.day}{get_suffix(day_date.day)} {day_date.strftime('%B')}",
             "temp": report["main"]["temp"],
             "description": report["weather"][0]["description"],
+            "icon": report["weather"][0]["icon"],
         })
  
     return {"city": data["city"]["name"], "days": days, "unit": unit}
