@@ -2,6 +2,8 @@
 
 It is a weather app that runs two ways: as a command-line program and as a website with a live video background that changes with the weather. It uses the OpenWeatherMap API.
 
+The name is based on the Yoruba word for sky.
+
 ## What it does
 
 - Current weather for any city, with a clothing/accessory suggestion
